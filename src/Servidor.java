@@ -3,6 +3,9 @@ import java.io.DataInputStream;
 import java.io.DataOutputStream;
 import java.net.ServerSocket;
 import java.net.Socket;
+import java.sql.ResultSet;
+import java.util.ArrayList;
+import java.util.List;
 
 public class Servidor {
 
@@ -22,7 +25,6 @@ public class Servidor {
     String mensajeRecibido; // Variable donde guardo lo que llega
     String mensajeRecibidoValor; // Variable donde guardo lo que llega
 
-    int DINEROcuenta = 500000;  // iniciaremos la cuenta del  usuario con un saldo de 500.000$
     public void Server() {
 
         try {
@@ -58,9 +60,10 @@ public class Servidor {
 
                     if (saldoIngresado > 10000){ // hacemos validación de que solo se pueda ingresar valor mayor a 10.000 $
 
-                        BL bl = new BL(); //  El programa irá a la capa de logica de negocio y hará las operaciones establecidas
+                        Dao d = new Dao();
+                        List<Object> dv = d.UpdateSaldo(saldoIngresado,2);
                             salida.writeUTF("Transacción realizada satisfactoriamente 👍 \n" +
-                                    "Nuevo saldo: "+bl.Retiros(DINEROcuenta,saldoIngresado));
+                                    "Nuevo saldo: "+ dv);
                             // envamos respuesta de la transacción y le diremos el saldo actual
 
                         mensajeRecibido = entrada.readUTF();// Leemos la opción escogida por si quiere hacer otro retiro
@@ -72,23 +75,22 @@ public class Servidor {
                 }
 
                 else if (serverRespuesta == 2){  // cliente seleccionó ver saldo actual
-
-                    String saldoIngresado = Integer.toString(DINEROcuenta);
-                    salida.writeUTF(saldoIngresado);
+                    Dao d = new Dao();
+                    ArrayList<Object> dv = (ArrayList<Object>) d.GetCuenta();
+                    ArrayList<Object> saldoIngresado = dv;
+                    salida.writeUTF(String.valueOf(saldoIngresado));
                 }
 
                 else if (serverRespuesta == 3){ // consignar a otra cuenta
                     salida.writeUTF("A continuación digite   una cuenta valida");
-
                     mensajeRecibido = entrada.readUTF();// Leemos lo que llega numero
                     mensajeRecibidoValor = entrada.readUTF();// Leemos lo que llega valor  a  consingnar
                     int valorConsignar = Integer.parseInt(mensajeRecibidoValor);
 
-
-                    BL bl = new BL();
+                    Dao d = new Dao();
+                    List<Object> dv = d.UpdateSaldo(valorConsignar,1);
                     salida.writeUTF("Consignación realizada satisfactoriamente 👍 \n" +
-                            "Nuevo saldo: "+bl.Retiros(DINEROcuenta,valorConsignar));
-
+                            "Nuevo saldo: "+ dv);
                 }
                 else if (serverRespuesta == 4){
                     JOptionPane.showMessageDialog(null,"Nos vemos ...  👊");
